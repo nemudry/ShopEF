@@ -1,20 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ShopEF.Models;
 
 namespace ShopEF.EF;
 
-public partial class ShopDbContext : DbContext
+internal class ShopDbContext : DbContext
 {
-    public ShopDbContext()
+    private string ConnectionString;
+
+    internal ShopDbContext()
     {
+        ConnectionString = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
     }
 
-    public ShopDbContext(DbContextOptions<ShopDbContext> options)
+    internal ShopDbContext(DbContextOptions<ShopDbContext> options)
         : base(options)
+    {    }
+
+    internal ShopDbContext(string path)
     {
+        ConnectionString = path;
     }
 
     internal DbSet<Account> Clients { get; set; }
@@ -31,7 +36,7 @@ public partial class ShopDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite("Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db");
+        optionsBuilder.UseSqlite(ConnectionString);
         optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Debug);
     }
 
@@ -87,8 +92,6 @@ public partial class ShopDbContext : DbContext
             entity.Property("CountProduct");
 
             entity.Property(e => e.DateOrder).HasDefaultValueSql("datetime('now')");
-
-         //   entity.HasOne(d => d.Account).WithMany(p => p.Orders).HasForeignKey(d => d.ClientId);
 
             entity.HasOne(d => d.Product).WithMany(p => p.Orders).HasForeignKey(d => d.ProductId);
         });

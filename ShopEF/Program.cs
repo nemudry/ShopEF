@@ -6,13 +6,11 @@ public static class Programm
     {
         try
         {
-            
-            using (var db = new ShopDbContext ())
-            {
+            string old = "Data Source=D:\\Source\\ShopDB.db";
+            string newp = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
+            DB_EF.CopyDB(old, newp);
 
-                Console.WriteLine("Hello, World!");
-            }
-            Console.WriteLine("Hello, World!");
+
         }
         catch (Exception e)
         {
