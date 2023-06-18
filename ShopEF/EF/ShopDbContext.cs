@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using ShopEF.Models;
 
-namespace ShopEF;
+namespace ShopEF.EF;
 
 public partial class ShopDbContext : DbContext
 {
@@ -15,33 +17,41 @@ public partial class ShopDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Client> Clients { get; set; }
+    internal DbSet<Account> Clients { get; set; }
 
-    public virtual DbSet<Discount> Discounts { get; set; }
+    internal DbSet<Discount> Discounts { get; set; }
 
-    public virtual DbSet<MscStorehouse> MscStorehouses { get; set; }
+    internal DbSet<MscStorehouse> MscStorehouses { get; set; }
 
-    public virtual DbSet<NnStorehouse> NnStorehouses { get; set; }
+    internal DbSet<NnStorehouse> NnStorehouses { get; set; }
 
-    public virtual DbSet<Order> Orders { get; set; }
+    internal DbSet<Order> Orders { get; set; }
 
-    public virtual DbSet<Product> Products { get; set; }
+    internal DbSet<Product> Products { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlite("Data Source=ShopDB.db");
+    {
+        optionsBuilder.UseSqlite("Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db");
+        optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Debug);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Client>(entity =>
+        modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasIndex(e => e.Login, "IX_Clients_Login").IsUnique();
+            entity.ToTable("Clients");
+
+            entity.Property("FullName");
+            entity.Property("Login");
+            entity.Property("ClientPassword");
+
         });
 
         modelBuilder.Entity<Discount>(entity =>
         {
             entity.HasIndex(e => e.ProductId, "IX_Discounts_ProductId").IsUnique();
 
-            entity.Property(e => e.Discount1)
+            entity.Property(e => e.Disc)
                 .HasDefaultValueSql("0")
                 .HasColumnName("Discount");
 
@@ -72,9 +82,13 @@ public partial class ShopDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
+            entity.Property("ClientId");
+            entity.Property("Price");
+            entity.Property("CountProduct");
+
             entity.Property(e => e.DateOrder).HasDefaultValueSql("datetime('now')");
 
-            entity.HasOne(d => d.Client).WithMany(p => p.Orders).HasForeignKey(d => d.ClientId);
+         //   entity.HasOne(d => d.Account).WithMany(p => p.Orders).HasForeignKey(d => d.ClientId);
 
             entity.HasOne(d => d.Product).WithMany(p => p.Orders).HasForeignKey(d => d.ProductId);
         });
@@ -83,13 +97,13 @@ public partial class ShopDbContext : DbContext
         {
             entity.HasIndex(e => e.Name, "IX_Products_Name").IsUnique();
 
+            entity.Property("Price");
+
             entity.Property(e => e.Category).HasDefaultValueSql("'Категория неизвестна'");
             entity.Property(e => e.Description).HasDefaultValueSql("'Описание отсутствует'");
             entity.Property(e => e.Made).HasDefaultValueSql("'Производитель неизвестен'");
         });
 
-        OnModelCreatingPartial(modelBuilder);
     }
 
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

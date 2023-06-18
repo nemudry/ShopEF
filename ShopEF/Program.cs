@@ -1,6 +1,30 @@
-﻿
+﻿using ShopEF.EF;
 
-Console.WriteLine("Hello, World!");
+public static class Programm
+{
+    static void Main(string[] args)
+    {
+        try
+        {
+            
+            using (var db = new ShopDbContext ())
+            {
+
+                Console.WriteLine("Hello, World!");
+            }
+            Console.WriteLine("Hello, World!");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Ошибка!");
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.StackTrace);
+            Console.WriteLine(e.TargetSite);
+            Console.WriteLine(e.Source);
+            Console.WriteLine(e.InnerException?.Message);
+        }
+    }     
+}
 
 
-//Scaffold-DbContext "Data Source=D:\Source\ConsoleShop_WithDB\ConsoleShop_WithDB\\ShopDB.db" Microsoft.EntityFrameworkCore.Sqlite
+
