@@ -11,7 +11,7 @@ using ShopEF.EF;
 namespace ShopEF.Migrations
 {
     [DbContext(typeof(ShopDbContext))]
-    [Migration("20230621102954_InitialCreate")]
+    [Migration("20230621115640_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

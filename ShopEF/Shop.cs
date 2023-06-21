@@ -1,5 +1,4 @@
-﻿
-namespace ShopEF;
+﻿namespace ShopEF;
 
 internal abstract class Shop
 {
@@ -303,7 +302,7 @@ internal abstract class Shop
             {
                 if (CheckAuthorizationAsync().Result)
                 {
-                    Account.PayPayment().Wait();
+                    PayPayment().Wait();
                 }
                 if (!Account.Busket.ProductsInBusket.Any()) PlaceInShop = placeStatus.ПереходНаГлавныйЭкран;
             }
@@ -576,5 +575,48 @@ internal abstract class Shop
             // -1 вернуться к покупкам
             else break;
         }
-    }      
+    }
+
+    // Оплата товара
+    public async Task PayPayment()
+    {
+        int answerPayment;
+        while (true)
+        {
+            Console.Clear();
+
+            // выберите способ оплаты
+            while (true)
+            {
+                Console.WriteLine($"Стоимость всех товаров в корзине составляет {Account.Busket.TotalSum()}р.");
+                Color.Cyan("Выберите способ оплаты: ");
+                Console.WriteLine("[1]. Оплата по карте. \n[-1]. Вернуться в корзину.");
+                answerPayment = Feedback.PlayerAnswer();
+
+                if (Feedback.CheckСonditions(answerPayment, 1, 1, -1)) break;
+            }
+
+            //3. Оплата по карте.
+            if (answerPayment == 1)
+            {
+                //формирование заказа в бд
+                await DB_EF.SetOrderAsync(DateTime.Now, Account, Account.Busket.ProductsInBusket);
+
+                //покупка товаров(уменьшение товара на складах)
+                await DB_EF.SetBuyProductsAsync(Account.Busket.ProductsInBusket);
+
+                Color.Green($"Денежные средства в размере {Account.Busket.TotalSum()}р списаны с Вашей банковской карты. Благодарим за покупку!");
+                Feedback.ReadKey();
+
+                // очистить корзину
+                Account.Busket.ProductsInBusket.Clear();
+
+                Account.PurchaseStatus = Account.purchaseStatus.НоваяПокупка;
+                break;
+            }
+
+            // Вернуться в корзину.
+            if (answerPayment == -1) break;
+        }
+    }
 }

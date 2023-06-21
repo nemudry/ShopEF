@@ -1,7 +1,6 @@
-﻿
-namespace ShopEF.Models;
+﻿namespace ShopEF.Models;
 
-internal abstract class EntityBase
+public abstract class EntityBase
 {
     public int Id { get; set; }
 

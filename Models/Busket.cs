@@ -1,16 +1,17 @@
-﻿
-namespace ShopEF;
+﻿global using TechClasses;
 
-internal class Busket
+namespace ShopEF.Models;
+
+public class Busket
 {
-    internal Dictionary<Product, int> ProductsInBusket { get; }
-    internal Busket()
+    public Dictionary<Product, int> ProductsInBusket { get; }
+    public Busket()
     {
         ProductsInBusket = new Dictionary<Product, int>();
     }
 
     // общая цена товаров в корзине
-    internal double TotalSum()
+    public double TotalSum()
     {
         double sum = 0;
         foreach (var product in ProductsInBusket)
@@ -21,7 +22,7 @@ internal class Busket
     }
 
     // перебор товаров в корзине
-    internal void BusketInfo()
+    public void BusketInfo()
     {
         Console.Clear();
 

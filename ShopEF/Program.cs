@@ -1,5 +1,7 @@
 ﻿global using ShopEF.EF;
 global using ShopEF.Models;
+global using TechClasses;
+
 
 namespace ShopEF;
 

@@ -1,9 +1,9 @@
 ﻿
-namespace ShopEF;
-internal static class Feedback
+namespace TechClasses;
+public static class Feedback
 {
     //проверка условий на ввод данных игроком
-    internal static bool CheckСonditions(int answerInput, int MaxRange, int MinRange, params int[] exeptions)
+    public static bool CheckСonditions(int answerInput, int MaxRange, int MinRange, params int[] exeptions)
     {
 
         if (!exeptions.Contains(answerInput))
@@ -17,7 +17,7 @@ internal static class Feedback
         }
         return true;
     }
-    internal static bool CheckСonditionsString(string answerInput, params int[] exeptions)
+    public static bool CheckСonditionsString(string answerInput, params int[] exeptions)
     {
         int.TryParse(answerInput, out int exeption);
 
@@ -31,14 +31,14 @@ internal static class Feedback
     }
 
     //Ввод данных игроком
-    internal static int PlayerAnswer()
+    public static int PlayerAnswer()
     {
         Color.CyanShort("Ваш ответ: ");
         int.TryParse(Console.ReadLine(), out int answer);
         Console.WriteLine();
         return answer;
     }
-    internal static string PlayerAnswerString()
+    public static string PlayerAnswerString()
     {
         Color.CyanShort("Ваш ответ: ");
         string answer = Console.ReadLine();
@@ -47,7 +47,7 @@ internal static class Feedback
     }
 
     //ожидание нажатия клавиши
-    internal static void ReadKey()
+    public static void ReadKey()
     {
         Console.WriteLine();
         Console.WriteLine($"Нажмите клавишу для продолжения.");

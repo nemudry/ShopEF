@@ -1,5 +1,5 @@
 ﻿
-namespace ShopEF;
+namespace TechClasses;
 public static class Color
 {
     //Методы для окрашивания шрифта
