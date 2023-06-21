@@ -11,7 +11,7 @@ using ShopEF.EF;
 namespace ShopEF.Migrations
 {
     [DbContext(typeof(ShopDbContext))]
-    [Migration("20230618110856_InitialCreate")]
+    [Migration("20230621102954_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -52,9 +52,9 @@ namespace ShopEF.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("Disc")
+                    b.Property<double?>("Disc")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("REAL")
                         .HasColumnName("Discount")
                         .HasDefaultValueSql("0");
 
@@ -138,6 +138,8 @@ namespace ShopEF.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClientId");
+
                     b.HasIndex("ProductId");
 
                     b.ToTable("Orders");
@@ -214,13 +216,26 @@ namespace ShopEF.Migrations
 
             modelBuilder.Entity("ShopEF.Models.Order", b =>
                 {
+                    b.HasOne("ShopEF.Models.Account", "Account")
+                        .WithMany("Orders")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ShopEF.Models.Product", "Product")
                         .WithMany("Orders")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Account");
+
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ShopEF.Models.Account", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("ShopEF.Models.Product", b =>

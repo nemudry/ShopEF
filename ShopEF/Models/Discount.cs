@@ -4,11 +4,11 @@ internal class Discount : EntityBase
 {
     internal int ProductId { get; set; }
 
-    internal int? Disc { get; set; }
+    internal double? Disc { get; set; }
 
     internal Product Product { get; set; } = null!;
 
-    internal Discount(int productId, int? disc)
+    internal Discount(int productId, double? disc)
     {
         ProductId = productId;
         Disc = disc;

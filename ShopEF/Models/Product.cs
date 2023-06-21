@@ -1,6 +1,6 @@
 ﻿namespace ShopEF.Models;
 
-public class Product : EntityBase
+internal partial class Product : EntityBase
 {
     internal string Name { get; set; } = null!;
 
@@ -10,8 +10,8 @@ public class Product : EntityBase
 
     internal string? Made { get; set; }
 
-    internal double Price { get; set; }
-
+    internal double Price { get; set; } 
+    
     internal Discount? Discount { get; set; }
 
     internal MscStorehouse? MscStorehouse { get; set; }
@@ -28,4 +28,17 @@ public class Product : EntityBase
         Made = made;
         Price = price;
     }
+
+    internal void ProductInfo()
+    {
+        Color.Cyan("Характеристики выбранного товара:");
+        Console.WriteLine($"{Description}");
+        Console.WriteLine($"Cтрана-производитель - {Made}.");
+        Color.GreenShort($"Цена - {TotalPrice()}");
+        if (Discount is not null) Color.Green($" - СКИДКА {Discount.Disc}% !!!.");
+        else Console.WriteLine();
+    }
+
+    internal double TotalPrice() => Price - Price * ((double)(Discount?.Disc ?? 0) / 100);
+    
 }

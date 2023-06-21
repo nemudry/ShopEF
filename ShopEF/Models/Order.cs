@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Net.Sockets;
 
 namespace ShopEF.Models;
 
@@ -6,7 +6,7 @@ internal class Order : EntityBase
 {
     internal DateTime DateOrder { get; set; }
 
-    private int ClientId { get; set; }
+    internal int ClientId { get; set; }
 
     internal int ProductId { get; set; }
 
@@ -14,8 +14,7 @@ internal class Order : EntityBase
 
     internal double Price { get; set; }
 
-    [ForeignKey("ClientId")]
-    private Account Account { get; set; } = null!;
+    internal Account Account { get; set; } = null!;
 
     internal Product Product { get; set; } = null!;
 

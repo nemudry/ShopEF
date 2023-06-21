@@ -1,43 +1,35 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ShopEF.Models;
 
 namespace ShopEF.EF;
 
-internal class ShopDbContext : DbContext
+public class ShopDbContext : DbContext
 {
-    private string ConnectionString;
+    private string ConnectionString ;
 
-    internal ShopDbContext()
+    public ShopDbContext()
     {
         ConnectionString = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
+        //  Database.EnsureDeleted();
+        // Database.EnsureCreated();
     }
 
-    internal ShopDbContext(DbContextOptions<ShopDbContext> options)
-        : base(options)
-    {    }
-
-    internal ShopDbContext(string path)
+    public ShopDbContext(string path)
     {
         ConnectionString = path;
     }
-
+    
     internal DbSet<Account> Clients { get; set; }
-
     internal DbSet<Discount> Discounts { get; set; }
-
     internal DbSet<MscStorehouse> MscStorehouses { get; set; }
-
     internal DbSet<NnStorehouse> NnStorehouses { get; set; }
-
     internal DbSet<Order> Orders { get; set; }
-
     internal DbSet<Product> Products { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlite(ConnectionString);
-        optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Debug);
+        optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Information);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,9 +39,7 @@ internal class ShopDbContext : DbContext
             entity.ToTable("Clients");
 
             entity.Property("FullName");
-            entity.Property("Login");
             entity.Property("ClientPassword");
-
         });
 
         modelBuilder.Entity<Discount>(entity =>
@@ -87,13 +77,13 @@ internal class ShopDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.Property("ClientId");
             entity.Property("Price");
             entity.Property("CountProduct");
 
             entity.Property(e => e.DateOrder).HasDefaultValueSql("datetime('now')");
 
             entity.HasOne(d => d.Product).WithMany(p => p.Orders).HasForeignKey(d => d.ProductId);
+            entity.HasOne(o => o.Account).WithMany(p => p.Orders).HasForeignKey(o => o.ClientId);
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -106,7 +96,5 @@ internal class ShopDbContext : DbContext
             entity.Property(e => e.Description).HasDefaultValueSql("'Описание отсутствует'");
             entity.Property(e => e.Made).HasDefaultValueSql("'Производитель неизвестен'");
         });
-
     }
-
 }

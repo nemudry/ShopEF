@@ -1,4 +1,7 @@
-﻿using ShopEF.EF;
+﻿global using ShopEF.EF;
+global using ShopEF.Models;
+
+namespace ShopEF;
 
 public static class Programm
 {
@@ -6,9 +9,24 @@ public static class Programm
     {
         try
         {
-            string old = "Data Source=D:\\Source\\ShopDB.db";
-            string newp = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
-            DB_EF.CopyDB(old, newp);
+
+            Shop shop = new ShopNN();
+            shop.StartShop();
+
+
+
+            /*
+                       string old = "Data Source=D:\\Source\\ShopDB.db";
+                       string newp = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
+                       var dd = DB_EF.CopyDB(old, newp);
+                       dd.Wait();
+
+                       */
+            /*   using (var db = new ShopDbContext ())
+               {
+
+               }
+               */
 
 
         }

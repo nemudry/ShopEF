@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace ShopEF.Models;
 
-public abstract class EntityBase
+internal abstract class EntityBase
 {
     public int Id { get; set; }
 
-    [Timestamp]
-    internal byte[] Timestamp { get; set; }
+   // [Timestamp]
+  //  public byte[] Timestamp { get; set; }
 }
