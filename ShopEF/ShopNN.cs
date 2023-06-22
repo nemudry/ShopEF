@@ -1,6 +1,4 @@
-﻿
-namespace ShopEF;
-
+﻿namespace ShopEF;
 internal class ShopNN : Shop
 {
     protected override string Name { get; }

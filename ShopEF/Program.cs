@@ -12,10 +12,11 @@ public static class Programm
         try
         {
 
-            Shop shop = new ShopNN();
-            shop.StartShop();
+                       Shop shop = new ShopNN();
+                     shop.StartShop();
+        
 
-
+          //  Shop shop = new ShopNN();
 
             /*
                        string old = "Data Source=D:\\Source\\ShopDB.db";

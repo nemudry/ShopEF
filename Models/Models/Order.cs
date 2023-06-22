@@ -1,14 +1,13 @@
-﻿using System.Net.Sockets;
-
+﻿
 namespace ShopEF.Models;
 
 public class Order : EntityBase
 {
-    public DateTime DateOrder { get; set; }
-    public int ClientId { get; set; }
-    public int ProductId { get; set; }
-    public int CountProduct { get; set; }
-    public double Price { get; set; }
+    public DateTime DateOrder { get; private set; }
+    public int ClientId { get; private set; }
+    public int ProductId { get; private set; }
+    public int CountProduct { get; private set; }
+    public double Price { get; private set; }
 
     public Account Account { get; set; } = null!;
     public Product Product { get; set; } = null!;

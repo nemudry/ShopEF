@@ -1,49 +1,54 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 namespace ShopEF.EF;
-
-public static class DB_EF
+internal static class DB_EF
 {
-
     //метод для переноса однотипных данных с одной бд на другую
-    public static async Task CopyDBAsync(string pathOldDb, string pathNewDb)
+    internal static async Task CopyDBAsync(string pathOldDb, string pathNewDb, string provOld = "SQLite", string provNew = "SQLite")
     {
-        using (var dbOld = new ShopDbContext(pathOldDb))
+        List<Product> products;
+        List<Discount> discounts;
+        List<MscStorehouse> mscStorehouse;
+        List<NnStorehouse> nnStorehouse;
+        List<Account> clients;
+        List<Order> orders;
+
+        using (var dbOld = new ShopDbContext(provOld, pathOldDb))
         {
-            var products = dbOld.Products.ToListAsync();
-            var discounts =dbOld.Discounts.ToListAsync();
-            var mscStorehouse = dbOld.MscStorehouses.ToListAsync();
-            var nnStorehouse = dbOld.NnStorehouses.ToListAsync();
-            var clients = dbOld.Clients.ToListAsync();
-            var orders = dbOld.Orders.ToListAsync();
-
-            using (var dbnew = new ShopDbContext(pathNewDb))
-            {
-                Task[] tasks = new Task[6]; 
-                tasks[0] = dbnew.Clients.AddRangeAsync(clients.Result);
-                tasks[1] = dbnew.Products.AddRangeAsync(products.Result);
-                tasks[2] = dbnew.Discounts.AddRangeAsync(discounts.Result);
-                tasks[3] = dbnew.NnStorehouses.AddRangeAsync(nnStorehouse.Result);
-                tasks[4] = dbnew.MscStorehouses.AddRangeAsync(mscStorehouse.Result);
-                tasks[5] = dbnew.Orders.AddRangeAsync(orders.Result);
-
-                Task.WaitAll(tasks);
-
-                await dbnew.SaveChangesAsync();
-            }
+            products = await dbOld.Products.ToListAsync();
+            discounts = await dbOld.Discounts.ToListAsync();
+            mscStorehouse = await dbOld.MscStorehouses.ToListAsync();
+            nnStorehouse = await dbOld.NnStorehouses.ToListAsync();
+            clients = await dbOld.Clients.ToListAsync();
+            orders = await dbOld.Orders.ToListAsync();
         }
-    }
+
+        using (var dbnew = new ShopDbContext(provNew, pathNewDb))
+        {
+            Task[] tasks = new Task[6];
+            tasks[0] = dbnew.Clients.AddRangeAsync(clients);
+            tasks[1] = dbnew.Products.AddRangeAsync(products);
+            tasks[2] = dbnew.Discounts.AddRangeAsync(discounts);
+            tasks[3] = dbnew.NnStorehouses.AddRangeAsync(nnStorehouse);
+            tasks[4] = dbnew.MscStorehouses.AddRangeAsync(mscStorehouse);
+            tasks[5] = dbnew.Orders.AddRangeAsync(orders);
+
+            Task.WaitAll(tasks);
+
+            await dbnew.SaveAsy();
+        }
+    }    
 
     //Загрузка продуктов в магазин
-    public static async Task<Dictionary<Product, int>> LoadProductsAsync()
+    internal static async Task<Dictionary<Product, int>> LoadProductsAsync()
     {
         //продукты
         Dictionary<Product, int> ProductsInShop = new Dictionary<Product, int>();
 
         using (var db = new ShopDbContext())
         {
+            //продукты включая таблицы скидки, количества товара на двух складах
             var products = (db.Products.Include(p => p.Discount).
                Include(p => p.MscStorehouse).
                Include(p => p.NnStorehouse)).ToListAsync().Result;           
@@ -57,7 +62,7 @@ public static class DB_EF
     }
 
     //проверка наличия клиента в бд
-    public static async Task<bool> CheckClientAsync(string login, string password = null)
+    internal static async Task<bool> CheckClientAsync(string login, string password = null)
     {
         Account? acc;
         using (var db = new ShopDbContext())
@@ -77,42 +82,42 @@ public static class DB_EF
     }
 
     //получение клиента из БД
-    public static async Task<Account> GetClientAsync(string login, string password)
+    internal static async Task<Account> GetClientAsync(string login, string password)
     {
         Account? acc;
         using (var db = new ShopDbContext())
         {
-            acc = await db.Clients.Include(c => c.Orders).ThenInclude(o => o.Product).
+            acc = await db.Clients.Include(c => c.Orders).ThenInclude(o => o.Product). //с заказами 
                     Where(c => c.Login == login && c.ClientPassword == password).FirstOrDefaultAsync();    
         }
         return acc;
     }
 
     //регистрация нового клиента
-    public static void SetNewClient(string fullName, string login, string password)
+    internal static void SetNewClient(string fullName, string login, string password)
     {        
         using (var db = new ShopDbContext())
         {
             db.Clients.Add(new Account(fullName, login, password));
-            db.SaveChanges();
+            db.SaveAsy().Wait();
         }
     }
 
     //формирование заказа в БД
-    public static async Task SetOrderAsync(DateTime dateTimeOrder, Account account, Dictionary<Product, int> purchase)
+    internal static async Task SetOrderAsync(DateTime dateTimeOrder, Account account, Dictionary<Product, int> purchase)
     {
         using (var db = new ShopDbContext())
         {
             foreach (var product in purchase)
             {
                 db.Orders.Add(new Order(dateTimeOrder, account.Id, product.Key.Id, product.Value, product.Key.TotalPrice() * product.Value));
-            }            
-            await db.SaveChangesAsync();
+            }
+            await db.SaveAsy();
         }
     }
 
     //Покупка товара (уменьшение количества товара на складах в БД)
-    public static async Task SetBuyProductsAsync(Dictionary<Product, int> purchase)
+    internal static async Task SetBuyProductsAsync(Dictionary<Product, int> purchase)
     {
         using (var db = new ShopDbContext())
         {
@@ -131,7 +136,7 @@ public static class DB_EF
                     productNN.ProductCount -= productNN.ProductCount; // c первого берется все продукция         
                 }
             }
-            await db.SaveChangesAsync();       
+            await db.SaveAsy();       
         }
     }
 }

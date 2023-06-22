@@ -1,24 +1,23 @@
-﻿global using ShopEF.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 
 namespace ShopEF.EF;
 
 public class ShopDbContext : DbContext
 {
-    private string ConnectionString = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
+    private readonly StreamWriter logsStream = new StreamWriter("ShopLogs.txt", true);
+    private readonly string ConnectionString; 
+    private readonly string Provider;
 
     public ShopDbContext()
-    {
-       // ConnectionString = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
-        //  Database.EnsureDeleted();
-        // Database.EnsureCreated();
+    {        
+        Connection.GetConnectionString(out Provider, out ConnectionString);
     }
 
-    public ShopDbContext(string path)
+    public ShopDbContext(string provider, string path)
     {
         ConnectionString = path;
+        Provider = provider;
     }
     
     internal DbSet<Account> Clients { get; set; }
@@ -30,8 +29,10 @@ public class ShopDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite(ConnectionString);
+        if (Provider == "SQLite") optionsBuilder.UseSqlite(ConnectionString);
+        if (Provider == "SqlServer") optionsBuilder.UseSqlServer(ConnectionString);
         optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Information);
+        optionsBuilder.LogTo(logsStream.WriteLine, LogLevel.Warning);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,8 +41,7 @@ public class ShopDbContext : DbContext
         {
             entity.ToTable("Clients");
 
-            entity.Property("FullName");
-            entity.Property("ClientPassword");
+            entity.HasIndex(e => e.Login, "IX_Clients_Login").IsUnique();
         });
 
         modelBuilder.Entity<Discount>(entity =>
@@ -79,11 +79,6 @@ public class ShopDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.Property("Price");
-            entity.Property("CountProduct");
-
-            entity.Property(e => e.DateOrder).HasDefaultValueSql("datetime('now')");
-
             entity.HasOne(d => d.Product).WithMany(p => p.Orders).HasForeignKey(d => d.ProductId);
             entity.HasOne(o => o.Account).WithMany(p => p.Orders).HasForeignKey(o => o.ClientId);
         });
@@ -92,11 +87,45 @@ public class ShopDbContext : DbContext
         {
             entity.HasIndex(e => e.Name, "IX_Products_Name").IsUnique();
 
-            entity.Property("Price");
-
             entity.Property(e => e.Category).HasDefaultValueSql("'Категория неизвестна'");
             entity.Property(e => e.Description).HasDefaultValueSql("'Описание отсутствует'");
             entity.Property(e => e.Made).HasDefaultValueSql("'Производитель неизвестен'");
-        });
+        });        
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        logsStream.Dispose();
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        await logsStream.DisposeAsync();
+    }
+
+    //сохранение с ловлей ошибок
+    internal async Task SaveAsy()
+    {
+        try
+        {
+            await SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException e)
+        {
+            Console.WriteLine("Ошибка DbUpdateConcurrencyException!");
+            Console.WriteLine(e.Message);
+        }
+        catch (DbUpdateException e)
+        {
+            Console.WriteLine("Ошибка DbUpdateException!");
+            Console.WriteLine(e.Message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Ошибка!");
+            Console.WriteLine(e.Message);
+        }
     }
 }

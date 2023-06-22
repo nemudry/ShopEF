@@ -13,7 +13,6 @@ internal abstract class Shop
         ВКорзину
     }
     protected virtual Account Account { get; set; }
-
     
     internal Shop()
     {
@@ -22,8 +21,7 @@ internal abstract class Shop
         PlaceInShop = placeStatus.ВходВМагазин;
         Account = new Account();
         ProductsInShop = DB_EF.LoadProductsAsync().Result; 
-    }
-    
+    }    
     
     //Запуск магазина
     public virtual void StartShop()
@@ -402,13 +400,13 @@ internal abstract class Shop
                 //регистрация
                 if (answerInAccount == 1)
                 {
-                   await RegistrationAsync();
+                    await RegistrationAsync();
                     break;
                 }
                 // авторизация
                 else if (answerInAccount == 2)
                 {
-                   await AuthorizationAsync();         
+                    await AuthorizationAsync();         
                 }
                 // -1 вернуться к покупкам
                 else return false;

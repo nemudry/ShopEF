@@ -1,7 +1,6 @@
 ﻿global using TechClasses;
 
 namespace ShopEF.Models;
-
 public class Busket
 {
     public Dictionary<Product, int> ProductsInBusket { get; }

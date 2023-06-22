@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShopEF.Models;
 
-[Index("Login", IsUnique = true, Name = "IX_Clients_Login")]
 public class Account : EntityBase
 {
-    public string FullName { get; set; } = null!;
-    public string Login { get; set; } = null!;
-    public string ClientPassword { get; set; } = null!;
+    public string FullName { get; private set; } = null!;
+    public string Login { get; private set; } = null!;
+    public string ClientPassword { get; private set; } = null!;
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 
     [NotMapped]
@@ -20,6 +18,14 @@ public class Account : EntityBase
     public clientStatus ClientStatus { get; set; }
     public enum clientStatus { Авторизован, Аноним }
 
+    //конструктор для загрузки модели из бд
+    public Account(string fullName, string login, string clientPassword)
+    {
+        FullName = fullName;
+        Login = login;
+        ClientPassword = clientPassword;
+    }
+    //основной конструктор для работы в приложении
     public Account(int id, string fullName, string login, string clientPassword, List<Order> orders, purchaseStatus purchaseStatus, clientStatus clientStatus, Busket busket)
     {
         Id = id;
@@ -31,22 +37,18 @@ public class Account : EntityBase
         PurchaseStatus = purchaseStatus;
         ClientStatus = clientStatus;
     }
+    //гостевой аккаунт
     public Account()
      : this(0, "Гость", "", "", new List<Order>(), purchaseStatus.НоваяПокупка, clientStatus.Аноним, new Busket())
     {    }
+    //деавторизация
     public Account(purchaseStatus purchaseStatus, Busket busket)
     : this(0, "Гость", "", "", new List<Order>(), purchaseStatus, clientStatus.Аноним, busket)
     {    }
+    //авторизация
     public Account(Account account, purchaseStatus purchaseStatus, Busket busket)
         : this (account.Id, account.FullName, account.Login, account.ClientPassword, account.Orders.ToList(), purchaseStatus, clientStatus.Авторизован, busket)
     {    }
-    public Account(string fullName, string login, string clientPassword)
-    {
-        FullName = fullName;
-        Login = login;
-        ClientPassword = clientPassword;
-    }
-
 
     // показать историю заказов
     public void HistoryOrdersInfo()

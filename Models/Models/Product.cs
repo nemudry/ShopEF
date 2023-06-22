@@ -2,11 +2,11 @@
 
 public class Product : EntityBase
 {
-    public string Name { get; set; } = null!;
-    public string? Category { get; set; }
-    public string? Description { get; set; }
-    public string? Made { get; set; }
-    public double Price { get; set; }
+    public string Name { get; private set; } = null!;
+    public string? Category { get; private set; }
+    public string? Description { get; private set; }
+    public string? Made { get; private set; }
+    public double Price { get; private set; }
 
     public Discount? Discount { get; set; }
     public MscStorehouse? MscStorehouse { get; set; }

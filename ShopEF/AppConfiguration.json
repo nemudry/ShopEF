@@ -1,0 +1,18 @@
+{
+  "exclude": [
+    "**/bin",
+    "**/bower_components",
+    "**/jspm_packages",
+    "**/node_modules",
+    "**/obj",
+    "**/platforms"
+  ],
+
+   "Provider": "SQLite",
+  // "Provider": "SqlServer", 
+
+  "ConnectionStrings": {
+    "SQLiteConnection": "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db",
+    "SQLServerConnection": "Server = .\\MSSQLSERVER01; Database=Shop; Trusted_Connection=True; Encrypt=no"
+  }
+}
