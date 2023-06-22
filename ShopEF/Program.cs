@@ -2,36 +2,15 @@
 global using ShopEF.Models;
 global using TechClasses;
 
-
 namespace ShopEF;
-
 public static class Programm
 {
     static void Main(string[] args)
     {
         try
         {
-
-                       Shop shop = new ShopNN();
-                     shop.StartShop();
-        
-
-          //  Shop shop = new ShopNN();
-
-            /*
-                       string old = "Data Source=D:\\Source\\ShopDB.db";
-                       string newp = "Data Source=D:\\Source\\ShopEF\\ShopEF\\ShopDB.db";
-                       var dd = DB_EF.CopyDB(old, newp);
-                       dd.Wait();
-
-                       */
-            /*   using (var db = new ShopDbContext ())
-               {
-
-               }
-               */
-
-
+            Shop shop = new ShopNN();
+            shop.StartShop();
         }
         catch (Exception e)
         {
