@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-
-namespace ShopEF.EF;
+﻿namespace ShopEF.EF;
 
 public class ShopDbContext : DbContext
 {
@@ -11,7 +8,8 @@ public class ShopDbContext : DbContext
 
     public ShopDbContext()
     {        
-        Connection.GetConnectionString(out Provider, out ConnectionString);
+        //получение данных из конфигурационного файла
+        Connection.GetConnection(out Provider, out ConnectionString);
     }
 
     public ShopDbContext(string provider, string path)
@@ -31,6 +29,7 @@ public class ShopDbContext : DbContext
     {
         if (Provider == "SQLite") optionsBuilder.UseSqlite(ConnectionString);
         if (Provider == "SqlServer") optionsBuilder.UseSqlServer(ConnectionString);
+
         optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Information);
         optionsBuilder.LogTo(logsStream.WriteLine, LogLevel.Warning);
     }
@@ -114,18 +113,21 @@ public class ShopDbContext : DbContext
         }
         catch (DbUpdateConcurrencyException e)
         {
-            Console.WriteLine("Ошибка DbUpdateConcurrencyException!");
+            Console.WriteLine("Ошибка при сохранении DbUpdateConcurrencyException!");
             Console.WriteLine(e.Message);
+            throw new Exception(e.Message);
         }
         catch (DbUpdateException e)
         {
-            Console.WriteLine("Ошибка DbUpdateException!");
+            Console.WriteLine("Ошибка при сохранении DbUpdateException!");
             Console.WriteLine(e.Message);
+            throw new Exception(e.Message);
         }
         catch (Exception e)
         {
-            Console.WriteLine("Ошибка!");
+            Console.WriteLine("Другая ошибка при сохранении!");
             Console.WriteLine(e.Message);
+            throw new Exception(e.Message);
         }
     }
 }

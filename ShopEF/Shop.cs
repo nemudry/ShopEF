@@ -14,15 +14,15 @@ internal abstract class Shop
         ВКорзину
     }
     protected virtual AccountShop AccountShop { get; set; }
-    
+
     internal Shop()
     {
         Name = "";
         Description = "";
         PlaceInShop = placeStatus.ВходВМагазин;
         AccountShop = new AccountShop();
-        ProductsInShop = DB_EF.LoadProductsAsync().Result; 
-    }    
+        ProductsInShop = EFDatabase.LoadProductsAsync().Result;
+    }
     
     //Запуск магазина
     public virtual void StartShop()
@@ -458,13 +458,14 @@ internal abstract class Shop
             }
 
             //Проверка на наличие данного клиента в бд        
-            bool isHasClint = await DB_EF.CheckClientAsync(answerLogin);
+            bool isHasClint = await EFDatabase.CheckClientAsync(answerLogin);
 
             //Если клиента нет в бд - регистрация нового клиента
             if (!isHasClint)
             {
-                DB_EF.SetNewClient(answerFullName, answerLogin, answerPassword);
-                Color.Green("Регистрация прошла успешно!");
+                var result = EFDatabase.SetNewClient(answerFullName, answerLogin, answerPassword);
+                if (result) Color.Green("Регистрация прошла успешно!");
+                else Color.Red("Регистрация не прошла!");
                 Feedback.ReadKey();
                 break;
             }
@@ -509,12 +510,12 @@ internal abstract class Shop
             }
 
             //Проверка на наличие данного клиента в бд
-            bool isHasClint = await DB_EF.CheckClientAsync(answerLogin, answerPassword);    
+            bool isHasClint = await EFDatabase.CheckClientAsync(answerLogin, answerPassword);    
 
             //Если клиент есть в бд - авторизация
             if (isHasClint)
             {
-                AccountShop = new AccountShop (await DB_EF.GetClientAsync(answerLogin, answerPassword), AccountShop.PurchaseStatus, AccountShop.Busket);
+                AccountShop = new AccountShop (await EFDatabase.GetClientAsync(answerLogin, answerPassword), AccountShop.PurchaseStatus, AccountShop.Busket);
                 Color.Green("Авторизация прошла успешно!");
                 Feedback.ReadKey();
                 break;
@@ -598,10 +599,10 @@ internal abstract class Shop
             if (answerPayment == 1)
             {
                 //формирование заказа в бд
-                await DB_EF.SetOrderAsync(DateTime.Now, AccountShop, AccountShop.Busket.ProductsInBusket);
+                await EFDatabase.SetOrderAsync(DateTime.Now, AccountShop, AccountShop.Busket.ProductsInBusket);
 
                 //покупка товаров(уменьшение товара на складах)
-                await DB_EF.SetBuyProductsAsync(AccountShop.Busket.ProductsInBusket);
+                await EFDatabase.SetBuyProductsAsync(AccountShop.Busket.ProductsInBusket);
 
                 Color.Green($"Денежные средства в размере {AccountShop.Busket.TotalSum()}р списаны с Вашей банковской карты. Благодарим за покупку!");
                 Feedback.ReadKey();
