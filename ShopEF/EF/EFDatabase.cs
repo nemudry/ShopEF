@@ -2,13 +2,6 @@
 namespace ShopEF.EF;
 internal static class EFDatabase
 {
-    private readonly static ShopDbContext _db;
-
-    static EFDatabase()
-    {
-        _db = new ShopDbContext(); 
-    }
-
     //метод для переноса однотипных данных с одной бд на другую
     internal static async Task CopyDBAsync(string pathOldDb, string pathNewDb, string provOld = "SQLite", string provNew = "SQLite")
     {
@@ -50,7 +43,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при копировании базы данных!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
     }
 
@@ -62,10 +55,10 @@ internal static class EFDatabase
 
         try
         {
-            using (_db)
+            using (var db = new ShopDbContext())
             {
                 //продукты включая таблицы скидки, количества товара на двух складах
-                var products = (_db.Products.Include(p => p.Discount).
+                var products = (db.Products.Include(p => p.Discount).
                    Include(p => p.MscStorehouse).
                    Include(p => p.NnStorehouse)).ToListAsync().Result;
 
@@ -79,7 +72,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при загрузке товаров в магазин!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
         return ProductsInShop;
     }
@@ -90,17 +83,17 @@ internal static class EFDatabase
         Account? acc = null;
         try
         {
-            using (_db)
+            using (var db = new ShopDbContext())
             {
                 //проверка только по логину
                 if (password == null)
                 {
-                    acc = await _db.Clients.Where(c => c.Login == login).FirstOrDefaultAsync();
+                    acc = await db.Clients.Where(c => c.Login == login).FirstOrDefaultAsync();
                 }
                 //проверка по логину/паролю
                 else
                 {
-                    acc = await _db.Clients.Where(c => c.Login == login && c.ClientPassword == password).FirstOrDefaultAsync();
+                    acc = await db.Clients.Where(c => c.Login == login && c.ClientPassword == password).FirstOrDefaultAsync();
                 }
             }
         }
@@ -108,7 +101,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при проверке клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
         return acc is null ? false : true;
     }
@@ -119,9 +112,9 @@ internal static class EFDatabase
         Account? acc = null;
         try
         {
-            using (_db)
+            using (var db = new ShopDbContext())
             {
-                acc = await _db.Clients.Include(c => c.Orders).ThenInclude(o => o.Product). //с заказами 
+                acc = await db.Clients.Include(c => c.Orders).ThenInclude(o => o.Product). //с заказами 
                         Where(c => c.Login == login && c.ClientPassword == password).FirstOrDefaultAsync();
             }
         }
@@ -129,7 +122,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при проверке клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
         return acc;
     }
@@ -140,10 +133,10 @@ internal static class EFDatabase
         var result = false;
         try
         {
-            using (_db)
+            using (var db = new ShopDbContext())
             {
-                _db.Clients.Add(new Account(fullName, login, password));
-                _db.SaveAsy().Wait();
+                db.Clients.Add(new Account(fullName, login, password));
+                db.SaveAsy().Wait();
                 result = true;
             }
         }
@@ -151,7 +144,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при создании клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
         return result;
     }
@@ -161,20 +154,20 @@ internal static class EFDatabase
     {
         try
         {
-            using (_db)
+            using (var db = new ShopDbContext())
             {
                 foreach (var product in purchase)
                 {
-                    _db.Orders.Add(new Order(dateTimeOrder, account.Id, product.Key.Id, product.Value, product.Key.TotalPrice() * product.Value));
+                    db.Orders.Add(new Order(dateTimeOrder, account.Id, product.Key.Id, product.Value, product.Key.TotalPrice() * product.Value));
                 }
-                await _db.SaveAsy();
+                await db.SaveAsy();
             }
         }
         catch (Exception e)
         {
             Console.WriteLine("Ошибка при формировании заказа в базе данных!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
     }
 
@@ -183,13 +176,13 @@ internal static class EFDatabase
     {
         try
         {
-            using (_db)
+            using (var db = new ShopDbContext())
             {
                 foreach (var product in purchase)
                 {
                     //количество продукта на складах
-                    var productNN = await _db.NnStorehouses.Where(p => p.ProductId == product.Key.Id).FirstOrDefaultAsync();
-                    var productMSK = await _db.MscStorehouses.Where(p => p.ProductId == product.Key.Id).FirstOrDefaultAsync();
+                    var productNN = await db.NnStorehouses.Where(p => p.ProductId == product.Key.Id).FirstOrDefaultAsync();
+                    var productMSK = await db.MscStorehouses.Where(p => p.ProductId == product.Key.Id).FirstOrDefaultAsync();
 
                     if (productNN!.ProductCount >= product.Value)
                     {
@@ -201,14 +194,14 @@ internal static class EFDatabase
                         productNN.ProductCount -= productNN.ProductCount; // c первого берется все продукция         
                     }
                 }
-                await _db.SaveAsy();
+                await db.SaveAsy();
             }
         }
         catch (Exception e)
         {
             Console.WriteLine("Ошибка при проверке клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            Feedback.ReadKey();
+            AskAnswer.Accept();
         }
     }
 }

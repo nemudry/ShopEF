@@ -12,11 +12,7 @@ public static class Programm
         catch (Exception e)
         {
             Console.WriteLine("Ошибка!");
-            Console.WriteLine(e.Message);
-            Console.WriteLine(e.StackTrace);
-            Console.WriteLine(e.TargetSite);
-            Console.WriteLine(e.Source);
-            Console.WriteLine(e.InnerException?.Message);
+            Exceptions.ShowExInfo(e);
         }
     }     
 }

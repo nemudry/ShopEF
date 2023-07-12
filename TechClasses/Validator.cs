@@ -16,6 +16,7 @@ public class Validator
         }
         return true;
     }
+    //проверка условий на ввод данных игроком, строки
     public static bool CheckСonditionsString(string answerInput, params int[] exeptions)
     {
         int.TryParse(answerInput, out int exeption);
@@ -27,5 +28,20 @@ public class Validator
             return false;
         }
         return true;
+    }
+
+    //получение проверенного  ответа
+    public static int GetChechedAnswer(string question, string[] answers, params string[] returnAnswers)
+    {
+        int clientAnswer = 0;
+        while (true)
+        {
+            var range = AskAnswer.ShowQuestionAnswers(question, answers, returnAnswers); //показать вопрос и ответ
+
+            clientAnswer = AskAnswer.AnswerPlayerInt(); // получение ответа клиента
+
+            if (CheckСonditions(clientAnswer, answers.Length, 1, range)) break; // проверка ответа валидатором
+        }
+        return clientAnswer;
     }
 }
