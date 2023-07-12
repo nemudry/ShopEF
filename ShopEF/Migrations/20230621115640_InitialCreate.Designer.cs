@@ -20,7 +20,7 @@ namespace ShopEF.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.7");
 
-            modelBuilder.Entity("ShopEF.Models.Account", b =>
+            modelBuilder.Entity("ShopEF.Models.AccountShop", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -216,7 +216,7 @@ namespace ShopEF.Migrations
 
             modelBuilder.Entity("ShopEF.Models.Order", b =>
                 {
-                    b.HasOne("ShopEF.Models.Account", "Account")
+                    b.HasOne("ShopEF.Models.AccountShop", "AccountShop")
                         .WithMany("Orders")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -228,12 +228,12 @@ namespace ShopEF.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Account");
+                    b.Navigation("AccountShop");
 
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShopEF.Models.Account", b =>
+            modelBuilder.Entity("ShopEF.Models.AccountShop", b =>
                 {
                     b.Navigation("Orders");
                 });

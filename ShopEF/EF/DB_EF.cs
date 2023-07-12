@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ShopEF.ModelExtensions;
 using System.Data;
 
 namespace ShopEF.EF;

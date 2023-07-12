@@ -20,17 +20,5 @@ public class Product : EntityBase
         Description = description;
         Made = made;
         Price = price;
-    }
-
-    public void ProductInfo()
-    {
-        Color.Cyan("Характеристики выбранного товара:");
-        Console.WriteLine($"{Description}");
-        Console.WriteLine($"Cтрана-производитель - {Made}.");
-        Color.GreenShort($"Цена - {TotalPrice()}");
-        if (Discount is not null) Color.Green($" - СКИДКА {Discount.Disc}% !!!.");
-        else Console.WriteLine();
-    }
-
-    public double TotalPrice() => Price - Price * ((double)(Discount?.Disc ?? 0) / 100);    
+    }    
 }
