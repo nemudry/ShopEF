@@ -120,7 +120,7 @@ internal static class EFDatabase
         }
         catch (Exception e)
         {
-            Console.WriteLine("Ошибка при проверке клиента в базе данных!");
+            Console.WriteLine("Ошибка при получении клиента из базы данных!");
             Exceptions.ShowExInfo(e);
             Feedback.AcceptPlayer();
         }
@@ -199,7 +199,7 @@ internal static class EFDatabase
         }
         catch (Exception e)
         {
-            Console.WriteLine("Ошибка при проверке клиента в базе данных!");
+            Console.WriteLine("Ошибка при уменьшении товара в базе данных!");
             Exceptions.ShowExInfo(e);
             Feedback.AcceptPlayer();
         }

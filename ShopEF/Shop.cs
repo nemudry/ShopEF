@@ -7,12 +7,7 @@ internal abstract class Shop
     protected virtual string Description { get; }
     protected Dictionary<Product, int> ProductsInShop { get; private set; }
     protected placeStatus PlaceInShop { get; set; }
-    protected enum placeStatus
-    {
-        ВходВМагазин,
-        ПереходНаГлавныйЭкран,
-        ВКорзину
-    }
+    protected enum placeStatus { ВходВМагазин, ПереходНаГлавныйЭкран, ВКорзину }
     protected virtual AccountShop Account { get; set; }
 
     internal Shop()
@@ -60,10 +55,7 @@ internal abstract class Shop
                 if (answerWantToBuy == 2) GoToBusket();
 
                 // Вход в аккаунт
-                if (answerWantToBuy == 3)
-                {
-                    if (CheckAuthorizationAsync().Result) GoToAccount();
-                }
+                if (answerWantToBuy == 3) GoToAccount();
 
                 // выход из программы
                 if (answerWantToBuy == -1 || Account.PurchaseStatus == AccountShop.purchaseStatus.ЗакончитьПокупку)
@@ -406,6 +398,8 @@ internal abstract class Shop
     // переход в аккаунт 
     protected virtual void GoToAccount()
     {
+        if (!CheckAuthorizationAsync().Result) return;
+
         Console.Clear();
 
         while (true)
@@ -418,10 +412,7 @@ internal abstract class Shop
                 new string[] { "Посмотреть историю заказов", "Деавторизоваться" }, "Вернуться к покупкам");
 
             //История заказов.
-            if (answerInAccount == 1)
-            {
-                Account.HistoryOrdersInfo();
-            }
+            if (answerInAccount == 1) Account.HistoryOrdersInfo();
             // деавторизация
             else if (answerInAccount == 2)
             {
