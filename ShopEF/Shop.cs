@@ -27,48 +27,56 @@ internal abstract class Shop
     //Запуск магазина
     public virtual void StartShop()
     {
-        int answerWantToBuy = 0;
-        while (true)
+        try
         {
-            Console.Clear();
-            PlaceInShop = placeStatus.ВходВМагазин;
-
-            if (Account.PurchaseStatus == AccountShop.purchaseStatus.НоваяПокупка)
+            int answerWantToBuy = 0;
+            while (true)
             {
-                Color.Cyan($"Добро пожаловать в {Name}!");
-                Color.Cyan($"{Description}");
-                Console.WriteLine();
+                Console.Clear();
+                PlaceInShop = placeStatus.ВходВМагазин;
 
-                answerWantToBuy = Validator.GetChechedAnswer("Хотите начать покупку?", 
-                    new string[] { "Начать покупку", "Перейти в корзину", "Войти в личный кабинет" }, "Выйти из магазина");
+                if (Account.PurchaseStatus == AccountShop.purchaseStatus.НоваяПокупка)
+                {
+                    Color.Cyan($"Добро пожаловать в {Name}!");
+                    Color.Cyan($"{Description}");
+                    Console.WriteLine();
+
+                    answerWantToBuy = Validator.GetChechedAnswer("Хотите начать покупку?",
+                        new string[] { "Начать покупку", "Перейти в корзину", "Войти в личный кабинет" }, "Выйти из магазина");
+                }
+
+                // Если в корзине уже добавлен товар, начальное меню меняется
+                // (продолжить покупку, а не начать покупку - пока не отоваришь корзину)
+                if (Account.PurchaseStatus == AccountShop.purchaseStatus.ПродуктыВкорзине)
+                {
+                    answerWantToBuy = Validator.GetChechedAnswer("Хотите продолжить покупку?",
+                        new string[] { "Продолжить покупку", "Перейти в корзину", "Войти в личный кабинет" }, "Выйти из магазина");
+                }
+
+                //Начать покупку
+                if (answerWantToBuy == 1) StartPurchase();
+
+                // В Корзину
+                if (answerWantToBuy == 2) GoToBusket();
+
+                // Вход в аккаунт
+                if (answerWantToBuy == 3)
+                {
+                    if (CheckAuthorizationAsync().Result) GoToAccount();
+                }
+
+                // выход из программы
+                if (answerWantToBuy == -1 || Account.PurchaseStatus == AccountShop.purchaseStatus.ЗакончитьПокупку)
+                {
+                    Console.WriteLine("Всего доброго!");
+                    break;
+                }
             }
-
-            // Если в корзине уже добавлен товар, начальное меню меняется
-            // (продолжить покупку, а не начать покупку - пока не отоваришь корзину)
-            if (Account.PurchaseStatus == AccountShop.purchaseStatus.ПродуктыВкорзине)
-            {
-                answerWantToBuy = Validator.GetChechedAnswer("Хотите продолжить покупку?", 
-                    new string[] { "Продолжить покупку", "Перейти в корзину", "Войти в личный кабинет" }, "Выйти из магазина");
-            }        
-
-            //Начать покупку
-            if (answerWantToBuy == 1) StartPurchase();
-
-            // В Корзину
-            if (answerWantToBuy == 2) GoToBusket();
-
-            // Вход в аккаунт
-            if (answerWantToBuy == 3)
-            {
-                if (CheckAuthorizationAsync().Result) GoToAccount();
-            }
-
-            // выход из программы
-            if (answerWantToBuy == -1 || Account.PurchaseStatus == AccountShop.purchaseStatus.ЗакончитьПокупку)
-            {
-                Console.WriteLine("Всего доброго!");
-                break;
-            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Возникла непредвиденная ошибка!");
+            Exceptions.ShowExInfo(e);
         }
     }
         
