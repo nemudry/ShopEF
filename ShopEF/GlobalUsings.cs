@@ -7,4 +7,5 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Logging;
 global using System.Data;
+global using System.Text.RegularExpressions;
 

@@ -6,6 +6,7 @@ internal static class ProductExtention
     internal static void ProductInfo(this Product product)
     {
         Color.Cyan("Характеристики выбранного товара:");
+        Console.WriteLine($"{product.Name}");
         Console.WriteLine($"{product.Description}");
         Console.WriteLine($"Cтрана-производитель - {product.Made}.");
         Color.GreenShort($"Цена - {product.TotalPrice()}");

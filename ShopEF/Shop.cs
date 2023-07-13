@@ -5,9 +5,9 @@ internal abstract class Shop
 {
     protected virtual string Name { get; }
     protected virtual string Description { get; }
-    internal static Dictionary<Product, int> ProductsInShop { get; private set; }
-    internal placeStatus PlaceInShop { get; set; }
-    internal enum placeStatus
+    protected Dictionary<Product, int> ProductsInShop { get; private set; }
+    protected placeStatus PlaceInShop { get; set; }
+    protected enum placeStatus
     {
         ВходВМагазин,
         ПереходНаГлавныйЭкран,
@@ -71,10 +71,8 @@ internal abstract class Shop
             }
         }
     }
-
-
-    
-    //Начать покупку
+        
+    //Начать покупку, выбор категории
     protected virtual void StartPurchase()
     {
         while (true)
@@ -94,26 +92,12 @@ internal abstract class Shop
                 if (Account.PurchaseStatus != AccountShop.purchaseStatus.ПродуктыВкорзине)
                     Account.PurchaseStatus = AccountShop.purchaseStatus.ЗакончитьПокупку;
 
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
                 break;
             }
 
-            Color.Cyan("Выберите категорию товара.");
-            foreach (var category in categories)
-            {
-                Console.WriteLine($"[{categories.IndexOf(category) + 1}]. {category}");
-            }
-            Console.WriteLine();
-
             //выбор категории пользователем
-            int answerIntCategory;
-            while (true)
-            {
-                Color.Cyan("Введите категорию.");
-                answerIntCategory = AskAnswer.AnswerPlayerInt();
-
-                if (Validator.CheckСonditions(answerIntCategory, categories.Count, 1)) break;
-            }
+            int answerIntCategory = Validator.GetChechedAnswer("Выберите категорию товара.", categories.ToArray<string>());                     
 
             // получение выбранной пользователем категории по номеру
             string chosenCategory = categories[answerIntCategory - 1];
@@ -123,8 +107,27 @@ internal abstract class Shop
         }
     }
 
+    //вывод товаров выбранной категории на экран
+    protected virtual void ShowProducts (List<Product> productOfThisCategory, string chosenCategory)
+    {
+        Color.Cyan($"Товары категории {chosenCategory}:");
+        int numberOfProduct = 0;
+        foreach (var product in productOfThisCategory)
+        {
+            numberOfProduct++;
+            Console.Write($"{numberOfProduct}. {product.Name}, ");
+            if (ProductsInShop[product] != 0)
+            {
+                Console.Write($"количество на складе: {ProductsInShop[product]} шт.");
+                product.ShowDiscount();
+            }
+            else Color.Red($"отсутствует в наличии.");
+        }
+        Console.WriteLine();
+    }
+
     // выбор товара из выбранной категории
-    protected void SelectProduct(string chosenCategory)
+    protected virtual void SelectProduct(string chosenCategory)
     {
         while (true)
         {
@@ -136,33 +139,11 @@ internal abstract class Shop
             var productOfThisCategory = ProductsInShop.Where(e => e.Key.Category == chosenCategory).Select(e => e.Key).ToList();
 
             //вывод товаров выбранной категории на экран
-            Color.Cyan($"Товары категории {chosenCategory}:");
-            int numberOfProduct = 0;
-            foreach (var product in productOfThisCategory)
-            {
-                numberOfProduct++;
-                Console.Write($"{numberOfProduct}. {product.Name}, ");
-                if (ProductsInShop[product] != 0)
-                {
-                    Console.Write($"количество на складе: {ProductsInShop[product]} шт.");
-                    product.ShowDiscount();
-                }
-                else Color.Red($"отсутствует в наличии.");
-            }
-            Console.WriteLine();
+            ShowProducts(productOfThisCategory, chosenCategory);
 
-            //выбор продукта для добавления в корзину
-            int chosenProduct = 0;
-            while (true)
-            {
-                Color.Cyan("Выберите дальнейшее действие.");
-                Console.WriteLine("Для перехода на страничку товара введите его номер.");
-                Console.WriteLine("Желаете вернуться к категориям - нажимите \"-1\".");
-                Console.WriteLine("Желаете вернуться на главный экран - нажимите \"-2\".");
-                chosenProduct = AskAnswer.AnswerPlayerInt();
-
-                if (Validator.CheckСonditions(chosenProduct, productOfThisCategory.Count, 1, -1, -2)) break;
-            };
+            //выбор продукта для добавления в корзину            
+            int chosenProduct = Validator.GetChechedAnswer("Выберите дальнейшее действие.\nДля перехода на страничку товара введите его номер.",
+                new string[productOfThisCategory.Count()], "Желаете вернуться к категориям", "Желаете вернуться на главный экран" ); 
 
             // назад в категории
             if (chosenProduct == -1) break;
@@ -173,68 +154,41 @@ internal abstract class Shop
                 PlaceInShop = placeStatus.ПереходНаГлавныйЭкран;
                 break;
             }
-            //определение товара
-            else
-            {
-                int numberOfProduct2 = 1;
-                foreach (var product in productOfThisCategory)
-                {
-                    if (numberOfProduct2 == chosenProduct)
-                    {
-                        Product selectedProduct = product;
-                        //описание товара и добавление его в корзину
-                        AddProductInBusket(selectedProduct);
-                    }
-                    numberOfProduct2++;
-                }
-            }
+
+            //определение товара    
+            Product selectedProduct = productOfThisCategory[chosenProduct - 1];
+
+            // показ карточки товара
+            Console.Clear();
+            selectedProduct.ProductInfo();
+
+            // добавление товара в корзину
+            AddProductInBusket(selectedProduct);
         }
     }
 
-    //описание товара и добавление его в корзину
-    protected void AddProductInBusket(Product product)
-    {
-        Console.Clear();
-
-        // показ карточки товара
-        product.ProductInfo();
-        if (ProductsInShop[product] != 0)
-        {
-            Color.Green($"Количество на складе: {ProductsInShop[product]} шт.");
-            Console.WriteLine();
-        }
-        else
-        {
-            Color.Red($"Отсутствует в наличии. Вернитесь позже.");
-            AskAnswer.Accept();
-            return;
-        }
-
-        int addToBusket;
-        while (true)
-        {
-            Color.Cyan("Выберите дальнейшее действие:");
-            Console.WriteLine($"1 - Добавить товар в корзину. \n2 - Вернуться к выбору товара.");
-            addToBusket = AskAnswer.AnswerPlayerInt();
-
-            if (Validator.CheckСonditions(addToBusket, 2, 1)) break;
-        }
+    // добавление товара в корзину
+    protected virtual void AddProductInBusket(Product product)
+    {        
+        //добавить товар или уйти?
+        int addToBusket = Validator.GetChechedAnswer("Выберите дальнейшее действие:", 
+            new string[] {"Добавить товар в корзину"}, "Вернуться к выбору товара"); 
 
         // добавление товара в корзину
         if (addToBusket == 1)
         {
-            int amountOfChosenProduct;
-            //покупка "оптом"
-            while (true)
+            if (ProductsInShop[product] == 0)
             {
-                Color.Cyan($"Сколько штук товара \"{product.Name}\" вы хотите добавить в корзину?");
-                Color.Cyan($"На складе доступно \"{ProductsInShop[product]}\" шт.");
-                amountOfChosenProduct = AskAnswer.AnswerPlayerInt();
-
-                if (Validator.CheckСonditions(amountOfChosenProduct, ProductsInShop[product], 1)) break;
+                Color.Red($"Товар временно отсутствует в наличии. Вернитесь позже.");
+                Feedback.AcceptPlayer();
+                return;
             }
 
-            // добавление в корзину
+            //покупка "оптом", определение товара в корзину
+            int amountOfChosenProduct = Validator.GetChechedAnswer($"Сколько штук товара \"{product.Name}\" вы хотите добавить в корзину? " +
+                $"\nНа складе доступно \"{ProductsInShop[product]}\" шт.",
+                new string[ProductsInShop[product]]);            
+
             // если данный товар уже есть в корзине - добавить к нему количества, иначе добавить новый товар
             if (Account.Busket.ProductsInBusket.ContainsKey(product)) 
                 Account.Busket.ProductsInBusket[product] += amountOfChosenProduct;
@@ -246,14 +200,14 @@ internal abstract class Shop
 
             Color.Green($"{amountOfChosenProduct} шт товара \"{product.Name}\" добавлено в корзину.");
             Console.WriteLine($"Стоимость всех товаров в корзине составляет {Account.Busket.TotalSum()}р.");
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
         // 2 - Вернуться к выбору товара.
         else return;
     }
 
     // переход в корзину 
-    protected void GoToBusket()
+    protected virtual void GoToBusket()
     {
         while (true)
         {
@@ -264,7 +218,7 @@ internal abstract class Shop
             if (!Account.Busket.ProductsInBusket.Any())
             {
                 Color.Red("Корзина пуста! Для оформления покупки сперва добавьте товаров корзину.");
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
                 break;
             }
 
@@ -273,38 +227,19 @@ internal abstract class Shop
             Account.Busket.BusketInfo();
 
             //выбор действия в корзине
-            int answerInBusket;
-            while (true)
-            {
-                Color.Cyan("Выберите дальнейшее действие:");
-                Console.WriteLine("[1]. Перейти к оплате. \n[2]. Удалить товар из корзины. " +
-                    "\n[-1]. Вернуться к покупкам. ");
-                answerInBusket = AskAnswer.AnswerPlayerInt();
-
-                if (Validator.CheckСonditions(answerInBusket, 2, 1, -1)) break;
-            }
+            int answerInBusket = Validator.GetChechedAnswer("Выберите дальнейшее действие",
+                new string[] { "Перейти к оплате", "Удалить товар из корзины"}, "Вернуться к покупкам");
 
             //Перейти к оплате.
-            if (answerInBusket == 1)
-            {
-                if (CheckAuthorizationAsync().Result)
-                {
-                    PayPayment().Wait();
-                }
-                if (!Account.Busket.ProductsInBusket.Any()) PlaceInShop = placeStatus.ПереходНаГлавныйЭкран;
-            }
+            if (answerInBusket == 1) PayPayment().Wait();
             // удалить товар из корзины
-            else if (answerInBusket == 2)
-            {
-                DeleteProductFromBusket();
-            }
-            // -1 вернуться к покупкам
-            else break;
+            else if (answerInBusket == 2) DeleteProductFromBusket();            
+            else break; // -1 вернуться к покупкам
         }
     }
 
     //удаление товара из корзины
-    protected void DeleteProductFromBusket()
+    protected virtual void DeleteProductFromBusket()
     {
         while (true)
         {
@@ -312,43 +247,25 @@ internal abstract class Shop
             Account.Busket.BusketInfo();
 
             //выбор товара на удаление из корзины
-            int answerIntRemoveProduct;
-            while (true)
-            {
-                Color.Cyan("Введите номер товара, который вы хотите удалить: ");
-                Color.Cyan("[-1]. Вернуться в корзину.");
-                answerIntRemoveProduct = AskAnswer.AnswerPlayerInt();
+            int answerIntRemoveProduct = Validator.GetChechedAnswer("Введите номер товара, который вы хотите удалить: ",
+                new string[Account.Busket.ProductsInBusket.Count()], "Вернуться в корзину"); 
 
-                if (Validator.CheckСonditions(answerIntRemoveProduct, Account.Busket.ProductsInBusket.Count(), 1)) break;
+            //[-1]. Вернуться в корзину.
+            if (answerIntRemoveProduct == -1) return;
 
-                //[-1]. Вернуться в корзину.");
-                if (answerIntRemoveProduct == -1) return;
-            }
-
-            // получение списка продуктов, определение удаляемого товара
-            List<Product> productsList = new List<Product>();
-            foreach (var product in Account.Busket.ProductsInBusket)
-            {
-                productsList.Add(product.Key);
-            }
-            Product deleteProduct = productsList[answerIntRemoveProduct - 1];
+            // определение удаляемого товара
+            Product deleteProduct = Account.Busket.ProductsInBusket.ElementAt(answerIntRemoveProduct - 1).Key;
 
             // получение количества продукта на удаление
-            int removeAmount;
-            while (true)
-            {
-                Color.Cyan("Введите количество товара, который вы хотите удалить: ");
-                removeAmount = AskAnswer.AnswerPlayerInt();
-
-                if (Validator.CheckСonditions(removeAmount, Account.Busket.ProductsInBusket[deleteProduct], 1)) break;
-            }
+            int removeAmount = Validator.GetChechedAnswer("Введите количество товара, который вы хотите удалить: ",
+                new string[Account.Busket.ProductsInBusket[deleteProduct]]);
 
             //удаление товара
             // если удаляется не все количество товара в корзине - уменьшить количество, иначе удалить товар полностью
             if (Account.Busket.ProductsInBusket[deleteProduct] > removeAmount) Account.Busket.ProductsInBusket[deleteProduct] -= removeAmount;
             else Account.Busket.ProductsInBusket.Remove(deleteProduct);
 
-            ProductsInShop[deleteProduct] += removeAmount;// добавление товара на полки магазина
+            ProductsInShop[deleteProduct] += removeAmount;// возврат товара на полки магазина
 
             Color.Green($"{removeAmount} шт. товара \"{deleteProduct.Name}\" удалено из корзины.");
             Console.WriteLine();
@@ -366,7 +283,6 @@ internal abstract class Shop
     //проверка на авторизацию
     protected virtual async Task<bool> CheckAuthorizationAsync()
     {
-        //если НЕавторизован
         while (true)
         {
             if (Account.ClientStatus == AccountShop.clientStatus.Аноним)
@@ -375,16 +291,8 @@ internal abstract class Shop
                 Console.WriteLine();
 
                 //выбор действия в аккаунте
-                int answerInAccount;
-                while (true)
-                {
-                    Color.Cyan("Выберите дальнейшее действие:");
-                    Console.WriteLine("[1]. Регистрация. \n[2]. Авторизация. " +
-                        "\n[-1]. Вернуться к покупкам. ");
-                    answerInAccount = AskAnswer.AnswerPlayerInt();
-
-                    if (Validator.CheckСonditions(answerInAccount, 2, 1, -1)) break;
-                }
+                int answerInAccount = Validator.GetChechedAnswer("Выберите дальнейшее действие",
+                new string[] { "Регистрация", "Авторизация" }, "Вернуться к покупкам"); 
 
                 //регистрация
                 if (answerInAccount == 1)
@@ -393,12 +301,8 @@ internal abstract class Shop
                     break;
                 }
                 // авторизация
-                else if (answerInAccount == 2)
-                {
-                    await AuthorizationAsync();         
-                }
-                // -1 вернуться к покупкам
-                else return false;
+                else if (answerInAccount == 2) await AuthorizationAsync();                   
+                else return false; // -1 вернуться к покупкам
             }
             else return true;
         }
@@ -413,38 +317,17 @@ internal abstract class Shop
             Console.Clear();
 
             //введите ФИО
-            string answerFullName;
-            while (true)
-            {
-                Color.Cyan("Введите ФИО: ");
-                Color.Cyan("Для возврата к покупкам нажмите [-1]: ");
-                answerFullName = AskAnswer.AnswerPlayerString();
-
-                if (Validator.CheckСonditionsString(answerFullName)) break;
-            }
+            string answerFullName = Validator.GetChechedAnswerString("Введите имя: ", 
+                new Regex (@"[а-яА-Яa-zA-Z]{3,15}", RegexOptions.IgnoreCase) , "Для возврата нажмите [-1]");
 
             //выход из регистрации
             if (answerFullName == "-1") break;
 
             //введите логин
-            string answerLogin;
-            while (true)
-            {
-                Color.Cyan("Придумайте логин: ");
-                answerLogin = AskAnswer.AnswerPlayerString();
-
-                if (Validator.CheckСonditionsString(answerLogin)) break;
-            }
+            string answerLogin = Validator.GetChechedAnswerString("Придумайте логин: ", new Regex(@"\w{5,15}"));
 
             //введите пароль
-            string answerPassword;
-            while (true)
-            {
-                Color.Cyan("Придумайте пароль: ");
-                answerPassword = AskAnswer.AnswerPlayerString();
-
-                if (Validator.CheckСonditionsString(answerPassword)) break;
-            }
+            string answerPassword = Validator.GetChechedAnswerString("Придумайте пароль: ", new Regex(@"\w{8,20}")); ;
 
             //Проверка на наличие данного клиента в бд        
             bool isHasClint = await EFDatabase.CheckClientAsync(answerLogin);
@@ -455,14 +338,14 @@ internal abstract class Shop
                 var result = EFDatabase.SetNewClient(answerFullName, answerLogin, answerPassword);
                 if (result) Color.Green("Регистрация прошла успешно!");
                 else Color.Red("Регистрация не прошла!");
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
                 break;
             }
             //Если логин/пароль заняты
             else
             {
                 Color.Red("Введенный логин занят!"); 
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
             }
         }
     }
@@ -475,28 +358,13 @@ internal abstract class Shop
             Console.Clear();
 
             //введите логин
-            string answerLogin;
-            while (true)
-            {
-                Color.Cyan("Введите логин: ");
-                Color.Cyan("Для возврата к покупкам нажмите [-1]: ");
-                answerLogin = AskAnswer.AnswerPlayerString();
-
-                if (Validator.CheckСonditionsString(answerLogin)) break;
-            }
+            string answerLogin = Validator.GetChechedAnswerString("Введите логин: ", new Regex(@"\w{5,15}"), "Для возврата нажмите [-1]"); 
 
             //выход из авторизации
             if (answerLogin == "-1") break;
 
             //введите пароль
-            string answerPassword;
-            while (true)
-            {
-                Color.Cyan("Введите пароль: ");
-                answerPassword = AskAnswer.AnswerPlayerString();
-
-                if (Validator.CheckСonditionsString(answerPassword)) break;
-            }
+            string answerPassword = Validator.GetChechedAnswerString("Введите пароль: ", new Regex(@"\w{8,20}")); 
 
             //Проверка на наличие данного клиента в бд
             bool isHasClint = await EFDatabase.CheckClientAsync(answerLogin, answerPassword);    
@@ -506,14 +374,14 @@ internal abstract class Shop
             {
                 Account = new AccountShop (await EFDatabase.GetClientAsync(answerLogin, answerPassword), Account.PurchaseStatus, Account.Busket);
                 Color.Green("Авторизация прошла успешно!");
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
                 break;
             }
             //Если логин/пароль не подходят
             else
             {
                 Color.Red("Введенные логин/пароль не подходят!");
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
             }
         }
     }
@@ -524,11 +392,11 @@ internal abstract class Shop
         Account = new AccountShop (Account.PurchaseStatus, Account.Busket);
 
         Color.Green("Выход из аккаунта произведен успешно!");
-        AskAnswer.Accept();
+        Feedback.AcceptPlayer();
     }
 
     // переход в аккаунт 
-    protected void GoToAccount()
+    protected virtual void GoToAccount()
     {
         Console.Clear();
 
@@ -538,16 +406,8 @@ internal abstract class Shop
             Color.Cyan($"ФИО: {Account.FullName}");
 
             //выбор действия в корзине
-            int answerInAccount;
-            while (true)
-            {
-                Color.Cyan("Выберите дальнейшее действие:");
-                Console.WriteLine("[1]. Посмотреть историю заказов. \n[2]. Деавторизоваться. " +
-                    "\n[-1]. Вернуться к покупкам. ");
-                answerInAccount = AskAnswer.AnswerPlayerInt();
-
-                if (Validator.CheckСonditions(answerInAccount, 2, 1, -1)) break;
-            }
+            int answerInAccount = Validator.GetChechedAnswer("Выберите дальнейшее действие",
+                new string[] { "Посмотреть историю заказов", "Деавторизоваться" }, "Вернуться к покупкам");
 
             //История заказов.
             if (answerInAccount == 1)
@@ -560,31 +420,27 @@ internal abstract class Shop
                 Deauthorization();
                 break;
             }
-            // -1 вернуться к покупкам
-            else break;
+            else break; // -1 вернуться к покупкам
         }
     }
 
     // Оплата товара
-    public async Task PayPayment()
+    protected virtual async Task PayPayment()
     {
+        //проверка авторизации
+        if (!CheckAuthorizationAsync().Result) return;
+
         int answerPayment;
         while (true)
         {
             Console.Clear();
 
             // выберите способ оплаты
-            while (true)
-            {
-                Console.WriteLine($"Стоимость всех товаров в корзине составляет {Account.Busket.TotalSum()}р.");
-                Color.Cyan("Выберите способ оплаты: ");
-                Console.WriteLine("[1]. Оплата по карте. \n[-1]. Вернуться в корзину.");
-                answerPayment = AskAnswer.AnswerPlayerInt();
+            answerPayment = Validator.GetChechedAnswer($"Стоимость всех товаров в корзине составляет {Account.Busket.TotalSum()}р." +
+                $"\nВыберите способ оплаты: ",
+                new string[] { "Оплата по карте" }, "Вернуться в корзину");
 
-                if (Validator.CheckСonditions(answerPayment, 1, 1, -1)) break;
-            }
-
-            //3. Оплата по карте.
+            // Оплата по карте.
             if (answerPayment == 1)
             {
                 //формирование заказа в бд
@@ -594,17 +450,16 @@ internal abstract class Shop
                 await EFDatabase.SetBuyProductsAsync(Account.Busket.ProductsInBusket);
 
                 Color.Green($"Денежные средства в размере {Account.Busket.TotalSum()}р списаны с Вашей банковской карты. Благодарим за покупку!");
-                AskAnswer.Accept();
+                Feedback.AcceptPlayer();
 
                 // очистить корзину
                 Account.Busket.ProductsInBusket.Clear();
 
                 Account.PurchaseStatus = AccountShop.purchaseStatus.НоваяПокупка;
+                PlaceInShop = placeStatus.ПереходНаГлавныйЭкран;
                 break;
-            }
-
-            // Вернуться в корзину.
-            if (answerPayment == -1) break;
+            }            
+            else break; // Вернуться в корзину.
         }
     }
 }

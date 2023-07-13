@@ -43,7 +43,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при копировании базы данных!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
     }
 
@@ -72,7 +72,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при загрузке товаров в магазин!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
         return ProductsInShop;
     }
@@ -101,7 +101,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при проверке клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
         return acc is null ? false : true;
     }
@@ -122,7 +122,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при проверке клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
         return acc;
     }
@@ -144,7 +144,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при создании клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
         return result;
     }
@@ -167,7 +167,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при формировании заказа в базе данных!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
     }
 
@@ -201,7 +201,7 @@ internal static class EFDatabase
         {
             Console.WriteLine("Ошибка при проверке клиента в базе данных!");
             Exceptions.ShowExInfo(e);
-            AskAnswer.Accept();
+            Feedback.AcceptPlayer();
         }
     }
 }

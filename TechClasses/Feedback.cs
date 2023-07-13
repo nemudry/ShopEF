@@ -1,6 +1,6 @@
 ﻿
 namespace TechClasses;
-public static class AskAnswer
+public static class Feedback
 {
     //Ввод данных игроком
     public static int AnswerPlayerInt()
@@ -19,13 +19,12 @@ public static class AskAnswer
     }
 
     //ожидание нажатия клавиши
-    public static void Accept()
+    public static void AcceptPlayer()
     {
         Console.WriteLine();
         Console.WriteLine($"Нажмите клавишу для продолжения.");
         Console.ReadKey();
     }
-
 
     // показать вопрос и варианты ответов
     public static int[] ShowQuestionAnswers (string question, string[] answers, params string[] returnAnswers)
@@ -38,7 +37,7 @@ public static class AskAnswer
 
         foreach (var ans in answers)
         {
-            Console.WriteLine($"[{++number}]. {ans}."); // перечисление ответов
+           if (ans != null) Console.WriteLine($"[{++number}]. {ans}."); // перечисление ответов
         }
 
         if (returnAnswers.Length > 0)
