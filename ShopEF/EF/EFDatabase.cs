@@ -1,8 +1,12 @@
-﻿
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 namespace ShopEF.EF;
+
+//работа с бд
 internal static class EFDatabase
 {
-    //метод для переноса однотипных данных с одной бд на другую
+    //метод для переноса данных с одной однотипной бд на другую
     internal static async Task CopyDBAsync(string pathOldDb, string pathNewDb, string provOld = "SQLite", string provNew = "SQLite")
     {
         List<Product> products;
@@ -14,6 +18,7 @@ internal static class EFDatabase
 
         try
         {
+            //загрузка данных из 1 бд
             using (var dbOld = new ShopDbContext(provOld, pathOldDb))
             {
                 products = await dbOld.Products.ToListAsync();
@@ -23,7 +28,7 @@ internal static class EFDatabase
                 clients = await dbOld.Clients.ToListAsync();
                 orders = await dbOld.Orders.ToListAsync();
             }
-
+            //сохранение данных в 2 бд
             using (var dbnew = new ShopDbContext(provNew, pathNewDb))
             {
                 Task[] tasks = new Task[6];
@@ -35,7 +40,6 @@ internal static class EFDatabase
                 tasks[5] = dbnew.Orders.AddRangeAsync(orders);
 
                 Task.WaitAll(tasks);
-
                 await dbnew.SaveAsy();
             }
         }
@@ -52,7 +56,6 @@ internal static class EFDatabase
     {
         //продукты
         Dictionary<Product, int> ProductsInShop = new Dictionary<Product, int>();
-
         try
         {
             using (var db = new ShopDbContext())
@@ -63,9 +66,7 @@ internal static class EFDatabase
                    Include(p => p.NnStorehouse)).ToListAsync().Result;
 
                 foreach (var product in products)
-                {
                     ProductsInShop.Add(product, (int)(product.NnStorehouse.ProductCount + product.MscStorehouse.ProductCount));
-                }
             }
         }
         catch (Exception e)
@@ -78,7 +79,7 @@ internal static class EFDatabase
     }
 
     //проверка наличия клиента в бд
-    internal static async Task<bool> CheckClientAsync(string login, string password = null)
+    internal static async Task<bool> CheckClientAsync(Account account, bool logAndPass)
     {
         Account? acc = null;
         try
@@ -86,15 +87,11 @@ internal static class EFDatabase
             using (var db = new ShopDbContext())
             {
                 //проверка только по логину
-                if (password == null)
-                {
-                    acc = await db.Clients.Where(c => c.Login == login).FirstOrDefaultAsync();
-                }
+                if (!logAndPass)
+                    acc = await db.Clients.Where(c => c.Login == account.Login).FirstOrDefaultAsync();
                 //проверка по логину/паролю
                 else
-                {
-                    acc = await db.Clients.Where(c => c.Login == login && c.ClientPassword == password).FirstOrDefaultAsync();
-                }
+                    acc = await db.Clients.Where(c => c.Login == account.Login && c.ClientPassword == account.ClientPassword).FirstOrDefaultAsync();
             }
         }
         catch (Exception e)
@@ -107,7 +104,7 @@ internal static class EFDatabase
     }
 
     //получение клиента из БД
-    internal static async Task<Account> GetClientAsync(string login, string password)
+    internal static async Task<Account> GetClientAsync(Account account)
     {
         Account? acc = null;
         try
@@ -115,7 +112,7 @@ internal static class EFDatabase
             using (var db = new ShopDbContext())
             {
                 acc = await db.Clients.Include(c => c.Orders).ThenInclude(o => o.Product). //с заказами 
-                        Where(c => c.Login == login && c.ClientPassword == password).FirstOrDefaultAsync();
+                        Where(c => c.Login == account.Login && c.ClientPassword == account.ClientPassword).FirstOrDefaultAsync();
             }
         }
         catch (Exception e)
@@ -128,14 +125,14 @@ internal static class EFDatabase
     }
 
     //регистрация нового клиента
-    internal static bool SetNewClient(string fullName, string login, string password)
+    internal static bool SetNewClient(Account account)
     {
         var result = false;
         try
         {
             using (var db = new ShopDbContext())
             {
-                db.Clients.Add(new Account(fullName, login, password));
+                db.Clients.Add(account);
                 db.SaveAsy().Wait();
                 result = true;
             }
@@ -157,9 +154,7 @@ internal static class EFDatabase
             using (var db = new ShopDbContext())
             {
                 foreach (var product in purchase)
-                {
                     db.Orders.Add(new Order(dateTimeOrder, account.Id, product.Key.Id, product.Value, product.Key.TotalPrice() * product.Value));
-                }
                 await db.SaveAsy();
             }
         }
@@ -185,9 +180,7 @@ internal static class EFDatabase
                     var productMSK = await db.MscStorehouses.Where(p => p.ProductId == product.Key.Id).FirstOrDefaultAsync();
 
                     if (productNN!.ProductCount >= product.Value)
-                    {
                         productNN.ProductCount -= product.Value; //если на ближайшем складе товара достаточно, берется только с него
-                    }
                     else
                     {
                         productMSK!.ProductCount -= product.Value - productNN.ProductCount; // со второго склада MSC добирается остаток

@@ -1,5 +1,6 @@
-﻿
-namespace ShopEF.ModelExtensions;
+﻿namespace ShopEF.ModelExtensions;
+
+//расширения для модели продукта с функционалом магазина
 internal static class ProductExtention
 {
     //показать информацию о магазине

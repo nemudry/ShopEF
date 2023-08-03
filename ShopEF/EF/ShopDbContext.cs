@@ -1,9 +1,16 @@
-﻿namespace ShopEF.EF;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
+namespace ShopEF.EF;
+
+//контекст бд
 public class ShopDbContext : DbContext
 {
+    //логирование
     private readonly StreamWriter logsStream = new StreamWriter("ShopLogs.txt", true);
+    //строка подключения
     private readonly string ConnectionString; 
+    //провайдер
     private readonly string Provider;
 
     public ShopDbContext()
@@ -11,13 +18,13 @@ public class ShopDbContext : DbContext
         //получение данных из конфигурационного файла
         Connection.GetConnection(out Provider, out ConnectionString);
     }
-
     public ShopDbContext(string provider, string path)
     {
         ConnectionString = path;
         Provider = provider;
     }
-    
+
+    //таблицы бд
     internal DbSet<Account> Clients { get; set; }
     internal DbSet<Discount> Discounts { get; set; }
     internal DbSet<MscStorehouse> MscStorehouses { get; set; }
@@ -27,9 +34,11 @@ public class ShopDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        //установка провайдера
         if (Provider == "SQLite") optionsBuilder.UseSqlite(ConnectionString);
         if (Provider == "SqlServer") optionsBuilder.UseSqlServer(ConnectionString);
 
+        //логирование на консоль и в файл
         optionsBuilder.LogTo(message => System.Diagnostics.Debug.WriteLine(message), LogLevel.Information);
         optionsBuilder.LogTo(logsStream.WriteLine, LogLevel.Warning);
     }
@@ -39,40 +48,31 @@ public class ShopDbContext : DbContext
         modelBuilder.Entity<Account>(entity =>
         {
             entity.ToTable("Clients");
-
             entity.HasIndex(e => e.Login, "IX_Clients_Login").IsUnique();
         });
 
         modelBuilder.Entity<Discount>(entity =>
         {
             entity.HasIndex(e => e.ProductId, "IX_Discounts_ProductId").IsUnique();
-
             entity.Property(e => e.Disc)
                 .HasDefaultValueSql("0")
                 .HasColumnName("Discount");
-
             entity.HasOne(d => d.Product).WithOne(p => p.Discount).HasForeignKey<Discount>(d => d.ProductId);
         });
 
         modelBuilder.Entity<MscStorehouse>(entity =>
         {
             entity.ToTable("MSC_Storehouse");
-
             entity.HasIndex(e => e.ProductId, "IX_MSC_Storehouse_ProductId").IsUnique();
-
             entity.Property(e => e.ProductCount).HasDefaultValueSql("0");
-
             entity.HasOne(d => d.Product).WithOne(p => p.MscStorehouse).HasForeignKey<MscStorehouse>(d => d.ProductId);
         });
 
         modelBuilder.Entity<NnStorehouse>(entity =>
         {
             entity.ToTable("NN_Storehouse");
-
             entity.HasIndex(e => e.ProductId, "IX_NN_Storehouse_ProductId").IsUnique();
-
             entity.Property(e => e.ProductCount).HasDefaultValueSql("0");
-
             entity.HasOne(d => d.Product).WithOne(p => p.NnStorehouse).HasForeignKey<NnStorehouse>(d => d.ProductId);
         });
 
@@ -85,7 +85,6 @@ public class ShopDbContext : DbContext
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasIndex(e => e.Name, "IX_Products_Name").IsUnique();
-
             entity.Property(e => e.Category).HasDefaultValueSql("'Категория неизвестна'");
             entity.Property(e => e.Description).HasDefaultValueSql("'Описание отсутствует'");
             entity.Property(e => e.Made).HasDefaultValueSql("'Производитель неизвестен'");

@@ -1,10 +1,14 @@
 ﻿namespace ShopEF.ModelExtensions;
 
-internal class AccountShop : Account
+//аккаунт с доп.функциями магазина (коризна и статусы)
+public class AccountShop : Account
 {
+    //корзина
     internal Busket Busket { get; }
+    //статус покупки
     internal purchaseStatus PurchaseStatus { get; set; }
     internal enum purchaseStatus { НоваяПокупка, ПродуктыВкорзине, ЗакончитьПокупку }
+    //статус аккаунта
     internal clientStatus ClientStatus { get; set; }
     internal enum clientStatus { Авторизован, Аноним }
 
@@ -67,5 +71,6 @@ internal class AccountShop : Account
             Color.Red("Заказы отсутствуют!");
             Console.WriteLine();
         }
+        Feedback.AcceptPlayer();
     }
 }
