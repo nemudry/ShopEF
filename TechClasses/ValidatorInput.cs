@@ -2,7 +2,7 @@
 
 //проверка корректности ввода данных
 public class ValidatorInput
-{    
+{
     //получение проверенного ответа
     public static int GetChechedAnswer(string question, string[] answers, params string[] returnAnswers)
     {
@@ -19,12 +19,8 @@ public class ValidatorInput
     //получение проверенного ответа, строки
     public static string GetChechedAnswerString(string question, params string[] returnAnswers)
     {
-        string clientAnswer;
-            var _ = Feedback.ShowQuestionAnswers(question, new string[0], returnAnswers); //показать вопрос
-            clientAnswer = Feedback.AnswerPlayerString(); // получение ответа клиента
-
-            //   if (CheckСonditionsString(clientAnswer, range)) break; // проверка ответа валидатором
-        
+        var _ = Feedback.ShowQuestionAnswers(question, new string[0], returnAnswers); //показать вопрос
+        string clientAnswer = Feedback.AnswerPlayerString(); // получение ответа клиента        
         return clientAnswer;
     }
 
@@ -42,17 +38,4 @@ public class ValidatorInput
         }
         return true;
     }
-    
-    //проверка условий на ввод данных игроком, строки
-    public static bool CheckСonditionsString(string answerInput, params int[] exeptions)
-    {
-        int.TryParse(answerInput, out int exeption);
-        if (!exeptions.Contains(exeption))
-        {
-            Color.Red("Введенное значение неверно.");
-            Console.WriteLine();
-            return false;
-        }
-        return true;
-    }  
 }
